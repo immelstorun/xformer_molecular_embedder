@@ -1,0 +1,54 @@
+# HOST_UID=$(id -u) HOST_GID=$(id -g) HOST_USER=$(id -un) docker-compose up --build -d
+# HOST_UID=$(id -u) HOST_GID=$(id -g) HOST_USER=$(id -un) docker-compose up --build -d <имя_сервиса>
+# --- Общие параметры для всех сервисов ---
+x-common-params: &common-params
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      USER_ID: ${HOST_UID:-1000}
+      GROUP_ID: ${HOST_GID:-1000}
+      USERNAME: ${HOST_USER:-devuser}
+  volumes:
+    - ./results:/app/results
+    - ./docs:/app/docs
+    - ./sandbox:/app/sandbox
+    - ./models:/app/models
+    - ./data:/app/data
+    - ./app/src:/app/src
+    # ---------------------------------------------------------
+  command: ["/bin/bash", "-c", "tail -f /dev/null"]
+  networks:
+    - default
+    - mlflow_core_mlflow-net # Убедись, что имя сети совпадает с именем ВНЕШНЕЙ сети ядра MLflow (скорее всего 'mlflow_core_mlflow-net')
+  environment:
+    # Указываем имя сервиса MLflow из сети mlflow-network
+    - MLFLOW_TRACKING_URI=http://mlflow-server:5000
+    # Указываем имя сервиса MinIO и его ВНУТРЕННИЙ порт API (9000)
+    - MLFLOW_S3_ENDPOINT_URL=http://minio-server:9000
+    # Учетные данные для MinIO (должны совпадать с настройками ядра MLflow)
+    - AWS_ACCESS_KEY_ID=minioadmin
+    - AWS_SECRET_ACCESS_KEY=minioadmin
+    # -----------------------------------------
+    # Переменная с именем пользователя контейнера (остается)
+    - CONTAINER_USER=${HOST_USER:-devuser}
+
+# --- Определения Сервисов ---
+services:
+  prototype:
+    <<: *common-params # Наследуем общие параметры
+    ports:
+    - "8788:8787"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: "nvidia"
+              capabilities: ["gpu"]
+              device_ids: ["6", "7"]
+
+# --- Определения Сетей ---
+networks:
+  mlflow_core_mlflow-net:
+    external: true # Сеть создана вне этого compose файла
+  default: # Сеть по умолчанию будет создана автоматически
