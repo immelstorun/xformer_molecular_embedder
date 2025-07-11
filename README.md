@@ -40,11 +40,8 @@ In short, xFormers makes it practical to train state-of-the-art models on consum
 
 ### Installation
 
-1.  Clone the repository:
-    ```bash
-    git clone https://gitlab.cspfmba.ru/aseikin/xformer_molecular_embedder.git
-    cd xformer_molecular_embedder
-    ```
+1.  Clone the repository: gitlab/github
+
 
 2.  Install dependencies. We recommend using a virtual environment.
     ```bash
