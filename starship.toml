@@ -1,0 +1,15 @@
+# Пример кастомного оформления Starship
+format = """
+$username@$hostname $directory$git_branch$git_status
+$character
+"""
+
+[username]
+style_user = "bold green"
+show_always = true
+
+[directory]
+truncation_length = 3
+
+[git_branch]
+symbol = "🌱 "
